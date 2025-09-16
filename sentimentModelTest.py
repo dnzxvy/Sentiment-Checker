@@ -5,8 +5,9 @@ import random
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-import joblib
+import joblib # To save trained model
 import kagglehub # To download IMDB Dataset
+from sklearn.metrics import accuracy_score
 
 # Download dataset
 nltk.download('movie_reviews')
@@ -24,9 +25,11 @@ for category in movie_reviews.categories():
 nltk_df = pd.DataFrame({"review": nltk_docs, "label": nltk_labels})
 print("NLTK dataset size:",nltk_df.shape)
 
+# Downloading IMDB dataset
 path = kagglehub.dataset_download("lakshmi25npathi/imdb-dataset-of-50k-movie-reviews")
 print("Path to dataset files:", path)
 
+# Loading IMDB dataset
 csv_path = path + "/IMDB Dataset.csv"
 
 imdb_dataset = pd.read_csv(csv_path)
@@ -49,33 +52,28 @@ X_train, X_test, y_train, y_test = train_test_split(
 # Vectorize the text ( convert words into numerical features
 #with bag of words)
 
-vectorizer = CountVectorizer(stop_words="english")
+vectorizer = CountVectorizer(stop_words="english", max_features=10000)
+X_train_vec = vectorizer.fit_transform(X_train)
+X_test_vec = vectorizer.transform(X_test)
 
-
-
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, labels, test_size=0.2, random_state=42
-)
-
+# Train Model
 model = MultinomialNB()
-model.fit(X_train, y_train)
+model.fit(X_train_vec, y_train)
 
-""""from sklearn.metrics import accuracy_score
 
-y_pred = model.predict(X_test)
-print("Accuracy:", accuracy_score(y_test, y_pred))
 
-new_texts = [
-    "This movie was absolutely wonderful, I loved it!",
-    "Worst film ever, don’t waste your time.",
-    "Mediocre story but some good acting.",
-    "I hated the film, but the soundtrack was great."
-]
+pred = model.predict(X_test_vec)
+print("Accuracy:", accuracy_score(y_test, pred))
 
-new_X = vectorizer.transform(new_texts)
-print("Custom Predictions:", model.predict(new_X))"""
-
-import joblib
+# Save model
 joblib.dump(model, "sentiment_model.pk1")
 joblib.dump(vectorizer, "vectorizer.pk1")
+
+
+def predict_sentiment(text):
+    X = vectorizer.transform([text])
+    pred = model.predict(X)[0]
+    return "Positive" if pred == 1 else "Negative"
+
+print(predict_sentiment("I really love this!"))
+print(predict_sentiment("This is boring and terrible."))
