@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,                     // Extension format version
+  "name": "Sentiment Checker",               // Extension name
+  "version": "1.0",                          // Version number
+  "description": "Paste text and check its sentiment", 
+  "permissions": ["storage"],                // Chrome permission for local storage
+  "action": {                                // Defines popup window
+    "default_popup": "popup.html"
+  }
+}
